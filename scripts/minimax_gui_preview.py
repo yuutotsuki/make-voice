@@ -11,6 +11,8 @@ import sys
 import threading
 import tkinter as tk
 from tkinter import filedialog, messagebox, scrolledtext
+from contextlib import redirect_stdout, redirect_stderr
+from io import StringIO
 
 
 def get_base_dir() -> str:
@@ -110,43 +112,51 @@ class TTSGui(tk.Tk):
             return
 
         self.append_log(f"開始: csv={self.csv_path}, out_dir={self.out_dir}")
-        thread = threading.Thread(target=self._run_subprocess, daemon=True)
+        thread = threading.Thread(target=self._run_inprocess, daemon=True)
         thread.start()
 
-    def _run_subprocess(self) -> None:
-        cmd = [
-            sys.executable,
-            MINIMAX_FROM_CSV,
+    def _run_inprocess(self) -> None:
+        # Import here to avoid circular issues on GUI import.
+        try:
+            import minimax_from_csv
+        except Exception as exc:  # pragma: no cover
+            self.after(0, lambda: messagebox.showerror("実行エラー", f"モジュール読み込みに失敗しました: {exc}"))
+            return
+
+        argv = [
             self.csv_path,
             "--config",
             DEFAULT_CONFIG,
             "--out-dir",
             self.out_dir,
         ]
+
+        class _LogWriter:
+            def write(self, s: str) -> None:
+                if not s:
+                    return
+                # 分割してGUIログへ
+                for line in s.splitlines():
+                    if line.strip():
+                        self._append(line.rstrip("\n"))
+
+            def flush(self) -> None:
+                return
+
+            def __init__(self, append_func):
+                self._append = append_func
+
+        writer = _LogWriter(lambda msg: self.after(0, lambda m=msg: self.append_log(m)))
+
         try:
-            proc = subprocess.Popen(
-                cmd,
-                stdout=subprocess.PIPE,
-                stderr=subprocess.STDOUT,
-                text=True,
-                bufsize=1,
-            )
-        except OSError as exc:
-            self.after(0, lambda: messagebox.showerror("実行エラー", f"プロセス起動に失敗しました: {exc}"))
-            return
-
-        if proc.stdout:
-            for line in proc.stdout:
-                self.after(0, lambda l=line.rstrip(): self.append_log(l))
-
-        proc.wait()
-        if proc.returncode == 0:
+            with redirect_stdout(writer), redirect_stderr(writer):
+                minimax_from_csv.main(argv)
             self.after(0, lambda: messagebox.showinfo("完了", "バッチ処理が完了しました。"))
-        else:
-            self.after(
-                0,
-                lambda: messagebox.showerror("失敗", f"バッチ処理に失敗しました (returncode={proc.returncode})"),
-            )
+        except SystemExit as exc:
+            code = exc.code if isinstance(exc.code, int) else 1
+            self.after(0, lambda: messagebox.showerror("失敗", f"バッチ処理に失敗しました (code={code})"))
+        except Exception as exc:  # pragma: no cover
+            self.after(0, lambda: messagebox.showerror("失敗", f"エラーが発生しました: {exc}"))
 
 
 def main() -> None:
