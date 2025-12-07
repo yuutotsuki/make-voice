@@ -2,3 +2,7 @@
 scripts/.env
 *.mp3
 *.txt
+scripts/__pycache__/
+data/*.csv
+data/*.csv:Zone.Identifier
+__pycache__/
