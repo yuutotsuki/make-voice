@@ -1,2 +1,4 @@
 .venv/
 scripts/.env
+*.mp3
+*.txt
