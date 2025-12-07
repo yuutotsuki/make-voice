@@ -1,0 +1,33 @@
+{
+  "base_url": "https://api.minimax.io/v1/t2a_v2",
+  "model": "speech-2.6-hd",
+  "output_format": "hex",
+  "voice_setting": {
+    "voice_id": "Japanese_DecisivePrincess",
+    "speed": 1.0,
+    "vol": 1.0,
+    "pitch": 1,
+    "emotion": "happy",
+    "text_normalization": false,
+    "latex_read": false
+  },
+  "audio_setting": {
+    "format": "mp3",
+    "sample_rate": 32000,
+    "bitrate": 128000,
+    "channel": 1,
+    "force_cbr": false
+  },
+  "voice_modify": {
+    "pitch": 0,
+    "intensity": 0,
+    "timbre": 0,
+    "sound_effects": null
+  },
+  "language_boost": "Japanese",
+  "subtitle_enable": false,
+  "pronunciation_dict": {
+    "tone": []
+  },
+  "timbre_weights": []
+}
