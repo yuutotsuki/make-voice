@@ -13,9 +13,16 @@ import tkinter as tk
 from tkinter import filedialog, messagebox, scrolledtext
 
 
-BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+def get_base_dir() -> str:
+    # PyInstaller --onefile extracts to _MEIPASS; fallback to repo relative.
+    if getattr(sys, "frozen", False) and hasattr(sys, "_MEIPASS"):
+        return sys._MEIPASS  # type: ignore[attr-defined]
+    return os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+
+
+BASE_DIR = get_base_dir()
 DEFAULT_CONFIG = os.path.join(BASE_DIR, "configs", "tts.json")
-MINIMAX_FROM_CSV = os.path.join(os.path.dirname(__file__), "minimax_from_csv.py")
+MINIMAX_FROM_CSV = os.path.join(BASE_DIR, "scripts", "minimax_from_csv.py")
 
 
 class TTSGui(tk.Tk):
