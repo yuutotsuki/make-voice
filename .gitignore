@@ -6,3 +6,6 @@ scripts/__pycache__/
 data/*.csv
 data/*.csv:Zone.Identifier
 __pycache__/
+build/
+dist/
+*.spec

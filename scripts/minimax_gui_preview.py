@@ -23,6 +23,26 @@ def get_base_dir() -> str:
 BASE_DIR = get_base_dir()
 DEFAULT_CONFIG = os.path.join(BASE_DIR, "configs", "tts.json")
 MINIMAX_FROM_CSV = os.path.join(BASE_DIR, "scripts", "minimax_from_csv.py")
+DEFAULT_ENV = os.path.join(BASE_DIR, "scripts", ".env")
+
+
+def load_env_file(path: str) -> None:
+    """Minimal .env loader (KEY=VAL lines). Does not override existing env vars."""
+    if not os.path.exists(path):
+        return
+    try:
+        with open(path, "r", encoding="utf-8") as f:
+            for line in f:
+                line = line.strip()
+                if not line or line.startswith("#") or "=" not in line:
+                    continue
+                key, val = line.split("=", 1)
+                key = key.strip()
+                val = val.strip().strip('"').strip("'")
+                if key and key not in os.environ:
+                    os.environ[key] = val
+    except OSError:
+        pass
 
 
 class TTSGui(tk.Tk):
@@ -130,6 +150,10 @@ class TTSGui(tk.Tk):
 
 
 def main() -> None:
+    # Load .env if present and MINIMAX_API_KEY not already set.
+    if not os.getenv("MINIMAX_API_KEY"):
+        load_env_file(DEFAULT_ENV)
+
     # On WSL/GUI-less environments, this may fail; catch and warn.
     try:
         app = TTSGui()
