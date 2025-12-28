@@ -120,7 +120,10 @@ class TTSGui(tk.Tk):
         try:
             import minimax_from_csv
         except Exception as exc:  # pragma: no cover
-            self.after(0, lambda: messagebox.showerror("実行エラー", f"モジュール読み込みに失敗しました: {exc}"))
+            self.after(
+                0,
+                lambda e=exc: messagebox.showerror("実行エラー", f"モジュール読み込みに失敗しました: {e}"),
+            )
             return
 
         argv = [
@@ -154,9 +157,9 @@ class TTSGui(tk.Tk):
             self.after(0, lambda: messagebox.showinfo("完了", "バッチ処理が完了しました。"))
         except SystemExit as exc:
             code = exc.code if isinstance(exc.code, int) else 1
-            self.after(0, lambda: messagebox.showerror("失敗", f"バッチ処理に失敗しました (code={code})"))
+            self.after(0, lambda c=code: messagebox.showerror("失敗", f"バッチ処理に失敗しました (code={c})"))
         except Exception as exc:  # pragma: no cover
-            self.after(0, lambda: messagebox.showerror("失敗", f"エラーが発生しました: {exc}"))
+            self.after(0, lambda e=exc: messagebox.showerror("失敗", f"エラーが発生しました: {e}"))
 
 
 def main() -> None:
