@@ -157,6 +157,9 @@ class TTSGui(tk.Tk):
             self.after(0, lambda: messagebox.showinfo("完了", "バッチ処理が完了しました。"))
         except SystemExit as exc:
             code = exc.code if isinstance(exc.code, int) else 1
+            msg = exc.code if isinstance(exc.code, str) else ""
+            if msg:
+                self.after(0, lambda m=msg: self.append_log(f"[error] {m}"))
             self.after(0, lambda c=code: messagebox.showerror("失敗", f"バッチ処理に失敗しました (code={c})"))
         except Exception as exc:  # pragma: no cover
             self.after(0, lambda e=exc: messagebox.showerror("失敗", f"エラーが発生しました: {e}"))

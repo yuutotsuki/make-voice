@@ -112,9 +112,14 @@ def build_parser() -> argparse.ArgumentParser:
 
 def load_csv(path: str) -> list[Dict[str, str]]:
     try:
-        with open(path, newline="", encoding="utf-8") as f:
+        with open(path, newline="", encoding="utf-8-sig") as f:
             reader = csv.DictReader(f)
-            return list(reader)
+            rows = list(reader)
+            if not reader.fieldnames:
+                raise SystemExit("CSVヘッダーが見つかりません。")
+            if "text" not in reader.fieldnames:
+                raise SystemExit(f"CSVヘッダーに text 列がありません: {reader.fieldnames}")
+            return rows
     except OSError as exc:
         raise SystemExit(f"Failed to read CSV file: {exc}") from exc
 
