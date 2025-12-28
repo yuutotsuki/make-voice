@@ -54,10 +54,10 @@ def parse_float(value: str) -> Optional[float]:
 
 def parse_row_overrides(row: Dict[str, str]) -> Dict[str, Any]:
     """Extract per-row overrides for voice_setting from CSV row."""
-    voice_id = row.get("voice_id", "").strip()
-    speed = parse_float(row.get("speed", ""))
-    pitch = parse_float(row.get("pitch", ""))
-    emotion = row.get("emotion", "").strip()
+    voice_id = (row.get("voice_id") or "").strip()
+    speed = parse_float(row.get("speed") or "")
+    pitch = parse_float(row.get("pitch") or "")
+    emotion = (row.get("emotion") or "").strip()
 
     overrides: Dict[str, Any] = {"voice_setting": {}}
     if voice_id:
