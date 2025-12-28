@@ -194,6 +194,11 @@ def synthesize(
     audio_setting = {
         k: v for k, v in audio_setting.items() if not (v is None or (isinstance(v, str) and v.strip() == ""))
     }
+    # Ensure pitch is int if provided as float (API expects int).
+    if isinstance(voice_setting.get("pitch"), float):
+        pitch_val = voice_setting["pitch"]
+        if pitch_val.is_integer():
+            voice_setting["pitch"] = int(pitch_val)
 
     base_payload["voice_setting"] = voice_setting
     base_payload["audio_setting"] = audio_setting

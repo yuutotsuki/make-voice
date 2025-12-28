@@ -52,11 +52,26 @@ def parse_float(value: str) -> Optional[float]:
         raise SystemExit(f"Invalid float value: {value}")
 
 
+def parse_int(value: str) -> Optional[int]:
+    if value is None:
+        return None
+    value = value.strip()
+    if not value:
+        return None
+    try:
+        as_float = float(value)
+    except ValueError:
+        raise SystemExit(f"Invalid int value: {value}")
+    if not as_float.is_integer():
+        raise SystemExit(f"Invalid int value (not integer): {value}")
+    return int(as_float)
+
+
 def parse_row_overrides(row: Dict[str, str]) -> Dict[str, Any]:
     """Extract per-row overrides for voice_setting from CSV row."""
     voice_id = (row.get("voice_id") or "").strip()
     speed = parse_float(row.get("speed") or "")
-    pitch = parse_float(row.get("pitch") or "")
+    pitch = parse_int(row.get("pitch") or "")
     emotion = (row.get("emotion") or "").strip()
 
     overrides: Dict[str, Any] = {"voice_setting": {}}
