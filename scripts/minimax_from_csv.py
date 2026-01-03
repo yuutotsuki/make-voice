@@ -119,12 +119,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--output-column",
         default="output",
-        help="Column name used to mark completed rows.",
-    )
-    parser.add_argument(
-        "--output-mark",
-        default="済",
-        help="Value to write in output column after successful generation.",
+        help="Column name used to skip completed rows (no write-back).",
     )
     parser.add_argument(
         "--base-url",
@@ -174,7 +169,6 @@ def main(argv: list[str]) -> None:
     os.makedirs(args.out_dir, exist_ok=True)
 
     row_index = 0
-    updated = False
     for row in rows:
         row_index += 1
         output_cell = (row.get(args.output_column) or "").strip()
@@ -225,19 +219,6 @@ def main(argv: list[str]) -> None:
         )
 
         print(f"[ok] {output_path}")
-        row[args.output_column] = args.output_mark
-        updated = True
-
-    if updated:
-        if args.output_column not in fieldnames:
-            fieldnames.append(args.output_column)
-        try:
-            with open(args.csv_path, "w", newline="", encoding="utf-8-sig") as f:
-                writer = csv.DictWriter(f, fieldnames=fieldnames)
-                writer.writeheader()
-                writer.writerows(rows)
-        except OSError as exc:
-            raise SystemExit(f"Failed to update CSV file: {exc}") from exc
 
 
 if __name__ == "__main__":
