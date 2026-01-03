@@ -51,8 +51,9 @@
 - コマンド例  
   `python scripts/minimax_from_csv.py data/lines.csv --config configs/tts.json --out-dir voice/`
 - CSVヘッダー（この順・名称で用意すること）  
-  `no, filename, text, voice_id, speed, pitch, emotion, notes`
+  `no, filename, text, voice_id, speed, pitch, emotion, notes, output`
 - 行ごとに上書きできるのは `voice_id` / `speed` / `pitch` / `emotion` のみ。空セルは configs/tts.json をそのまま使う。  
 - `text` が空の行はスキップ。  
 - ファイル名の決定: `filename` があればそれを使用。なければ `line_{no}`、それも無ければ `line_{row_index}`（1始まり）。拡張子は自動で `.mp3` 付与。  
 - `--out-dir` は存在しなければ自動作成。デフォルトは `voice/`。
+- `output` が空でない行はスキップ。成功した行は `output` に `済` を書き込む（変更可: `--output-column` / `--output-mark`）。

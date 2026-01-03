@@ -14,12 +14,16 @@ CSV columns (header names must match):
   pitch (optional): per-row override (float)
   emotion (optional): per-row override
   notes (optional): ignored
+  output (optional): if non-empty, the row is skipped; after success, this column is marked
 
 Filename rules:
   - If filename is provided, use it.
   - Else if no is provided, use line_{no}.
   - Else use line_{row_index} (1-based, excluding header).
   - .mp3 extension is always appended (audio format is controlled by configs/tts.json).
+Output rules:
+  - If output column is non-empty, the row is skipped.
+  - After a successful generation, output is set to "済" by default.
 """
 
 import argparse
@@ -27,7 +31,7 @@ import copy
 import csv
 import os
 import sys
-from typing import Any, Dict, Optional
+from typing import Any, Dict, Optional, Tuple
 
 from minimax_tts import (
     DEFAULT_BASE_URL,
@@ -113,6 +117,16 @@ def build_parser() -> argparse.ArgumentParser:
         help="Output directory (created if missing).",
     )
     parser.add_argument(
+        "--output-column",
+        default="output",
+        help="Column name used to mark completed rows.",
+    )
+    parser.add_argument(
+        "--output-mark",
+        default="済",
+        help="Value to write in output column after successful generation.",
+    )
+    parser.add_argument(
         "--base-url",
         default=None,
         help="Override TTS endpoint. Default uses main or TTFA endpoint based on flags/config.",
@@ -125,7 +139,7 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
-def load_csv(path: str) -> list[Dict[str, str]]:
+def load_csv(path: str) -> Tuple[list[Dict[str, str]], list[str]]:
     try:
         with open(path, newline="", encoding="utf-8-sig") as f:
             reader = csv.DictReader(f)
@@ -134,7 +148,7 @@ def load_csv(path: str) -> list[Dict[str, str]]:
                 raise SystemExit("CSVヘッダーが見つかりません。")
             if "text" not in reader.fieldnames:
                 raise SystemExit(f"CSVヘッダーに text 列がありません: {reader.fieldnames}")
-            return rows
+            return rows, list(reader.fieldnames)
     except OSError as exc:
         raise SystemExit(f"Failed to read CSV file: {exc}") from exc
 
@@ -147,7 +161,7 @@ def main(argv: list[str]) -> None:
     if not api_key:
         raise SystemExit("MINIMAX_API_KEY is not set.")
 
-    rows = load_csv(args.csv_path)
+    rows, fieldnames = load_csv(args.csv_path)
     config_payload = load_json_config(args.config)
 
     voice_setting_cfg = config_payload.get("voice_setting") if isinstance(config_payload.get("voice_setting"), dict) else {}
@@ -160,8 +174,12 @@ def main(argv: list[str]) -> None:
     os.makedirs(args.out_dir, exist_ok=True)
 
     row_index = 0
+    updated = False
     for row in rows:
         row_index += 1
+        output_cell = (row.get(args.output_column) or "").strip()
+        if output_cell:
+            continue
         text = (row.get("text") or "").strip()
         if not text:
             continue
@@ -207,6 +225,19 @@ def main(argv: list[str]) -> None:
         )
 
         print(f"[ok] {output_path}")
+        row[args.output_column] = args.output_mark
+        updated = True
+
+    if updated:
+        if args.output_column not in fieldnames:
+            fieldnames.append(args.output_column)
+        try:
+            with open(args.csv_path, "w", newline="", encoding="utf-8-sig") as f:
+                writer = csv.DictWriter(f, fieldnames=fieldnames)
+                writer.writeheader()
+                writer.writerows(rows)
+        except OSError as exc:
+            raise SystemExit(f"Failed to update CSV file: {exc}") from exc
 
 
 if __name__ == "__main__":
