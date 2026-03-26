@@ -218,7 +218,7 @@ def main(argv: list[str]) -> None:
             api_key=api_key,
         )
 
-        print(f"[ok] {output_path}")
+        print(f"[ok] {output_path}", flush=True)
 
 
 if __name__ == "__main__":
