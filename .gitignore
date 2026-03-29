@@ -8,4 +8,6 @@ data/*.csv:Zone.Identifier
 __pycache__/
 build/
 dist/
+*.zip
+*.exe
 *.spec
